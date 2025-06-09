@@ -12,9 +12,15 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed });
+    const user = await User.create({
+      name,
+      email,
+      password: hashed,
+      role: "user",
+    });
 
-    const { accessToken, refreshToken } = generateTokens(user._id);
+    const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+    // console.log("Tokens generated", accessToken, refreshToken);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -23,9 +29,14 @@ export const register = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res
-      .status(201)
-      .json({ accessToken, message: "User registered successfully" });
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     res.status(500).json({ message: "Register error", error: err.message });
   }
@@ -42,7 +53,14 @@ export const login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    const { accessToken, refreshToken } = generateTokens(user._id);
+    const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 15 * 60 * 1000,
+    });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -51,7 +69,7 @@ export const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ accessToken, message: "Login successful" });
+    res.json({ message: "Login successful" });
   } catch (err) {
     res.status(500).json({ message: "Login error", error: err.message });
   }
@@ -63,14 +81,16 @@ export const refreshAccessToken = (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
     const accessToken = jwt.sign(
-      { userId: decoded.userId },
-      process.env.JWT_SECRET,
+      { userId: decoded.userId, role: decoded.role },
+      process.env.JWT_ACCESS_TOKEN,
       {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m",
       }
     );
-    res.json({ accessToken });
+
+    res.status(200).json({ message: "Access token refreshed" });
   } catch (err) {
     res.status(401).json({ message: "Invalid refresh token" });
   }
