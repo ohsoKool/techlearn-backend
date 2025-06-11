@@ -23,4 +23,5 @@ courseRouter.delete(
   isAdmin,
   deleteCourse
 );
+
 export default courseRouter;

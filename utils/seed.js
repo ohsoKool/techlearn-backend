@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Course from "../models/course.model.js";
+import Chapter from "../models/chapter.model.js";
 
 dotenv.config();
 
@@ -8,77 +9,97 @@ const courses = [
   {
     title: "Introduction to JavaScript",
     chapters: [
-      { title: "Variables & Data Types" },
-      { title: "Functions & Scope" },
-      { title: "Loops & Conditionals" },
+      "Variables & Data Types",
+      "Functions & Scope",
+      "Loops & Conditionals",
     ],
   },
   {
     title: "Mastering React.js",
-    chapters: [
-      { title: "JSX & Components" },
-      { title: "State & Props" },
-      { title: "React Router" },
-    ],
+    chapters: ["JSX & Components", "State & Props", "React Router"],
   },
   {
     title: "Node.js for Backend Development",
     chapters: [
-      { title: "Node.js Fundamentals" },
-      { title: "File System & Streams" },
-      { title: "Event Loop" },
+      "Node.js Fundamentals",
+      "File System & Streams",
+      "Event Loop & Async",
     ],
   },
   {
     title: "Understanding Databases: MongoDB & SQL",
     chapters: [
-      { title: "MongoDB Basics" },
-      { title: "Relational vs NoSQL" },
-      { title: "Querying with Mongoose" },
+      "MongoDB Basics",
+      "Relational vs NoSQL",
+      "Querying with Mongoose",
     ],
   },
   {
     title: "REST API Design Principles",
-    chapters: [{ title: "HTTP Methods" }, { title: "RESTful Routes" }],
+    chapters: [
+      "HTTP Methods & Status Codes",
+      "RESTful Routing",
+      "Versioning & Error Handling",
+    ],
   },
   {
     title: "Authentication & Authorization in Web Apps",
-    chapters: [{ title: "Sessions vs JWT" }, { title: "Login Flow" }],
+    chapters: [
+      "Sessions vs JWT",
+      "Login & Signup Flow",
+      "Role-Based Access Control",
+    ],
   },
   {
     title: "Frontend Styling with Tailwind CSS",
     chapters: [
-      { title: "Utility-first Design" },
-      { title: "Responsive Layouts" },
+      "Utility-first Design",
+      "Responsive Layouts",
+      "Customizing Themes",
     ],
   },
   {
     title: "React Hooks Deep Dive",
-    chapters: [{ title: "useState & useEffect" }, { title: "Custom Hooks" }],
+    chapters: [
+      "useState & useEffect",
+      "useContext & useReducer",
+      "Creating Custom Hooks",
+    ],
   },
   {
     title: "Express.js Crash Course",
-    chapters: [{ title: "Routing" }, { title: "Middleware" }],
+    chapters: ["Routing & Middleware", "Request Lifecycle", "Error Handling"],
   },
   {
     title: "JWT Token Authentication System",
-    chapters: [{ title: "Token Generation" }, { title: "Securing Routes" }],
+    chapters: [
+      "Token Creation & Storage",
+      "Protecting Routes",
+      "Token Expiry & Refresh",
+    ],
   },
 ];
 
 export const seedCourses = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-
     const existingCourses = await Course.find({});
-    if (existingCourses.length === 0) {
-      await Course.insertMany(courses);
-      console.log("Courses seeded successfully");
-    } else {
+    if (existingCourses.length > 0) {
       console.log("Courses already exist, skipping seeding.");
+      return;
     }
 
-    mongoose.disconnect();
+    for (const courseData of courses) {
+      const course = await Course.create({ title: courseData.title });
+
+      const chapterDocs = courseData.chapters.map((title) => ({
+        title,
+        courseId: course._id,
+      }));
+
+      await Chapter.insertMany(chapterDocs);
+    }
+
+    console.log("Courses and chapters seeded successfully");
   } catch (error) {
     console.error("Error seeding courses:", error.message);
     process.exit(1);

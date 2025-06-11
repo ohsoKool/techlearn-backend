@@ -1,4 +1,6 @@
 import Course from "../models/course.model.js";
+import Chapter from "../models/chapter.model.js";
+import Note from "../models/note.model.js";
 
 export const getAllCourses = async (req, res) => {
   try {
@@ -54,12 +56,22 @@ export const deleteCourse = async (req, res) => {
   const { id } = req.params;
   try {
     const deletedCourse = await Course.findByIdAndDelete(id);
-    if (!deletedCourse)
+
+    if (!deletedCourse) {
       return res.status(404).json({ message: "Course not found" });
-    res.json({ message: "Course deleted" });
+    }
+
+    // Delete related chapters
+    await Chapter.deleteMany({ courseId: id });
+
+    // Delete related notes
+    await Note.deleteMany({ courseId: id });
+
+    res.json({ message: "Course, chapters, and notes deleted" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to delete course", error: error.message });
+    res.status(500).json({
+      message: "Failed to delete course",
+      error: error.message,
+    });
   }
 };

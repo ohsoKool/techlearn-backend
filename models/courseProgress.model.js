@@ -1,22 +1,5 @@
 import mongoose from "mongoose";
 
-const completedChapterSchema = {
-  chapterId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-  },
-  completedAt: {
-    type: Date,
-    required: true,
-    default: Date.now,
-  },
-  lastUpdated: {
-    type: Date,
-    required: true,
-    default: Date.now,
-  },
-};
-
 const courseProgressSchema = new mongoose.Schema(
   {
     userId: {
@@ -29,16 +12,20 @@ const courseProgressSchema = new mongoose.Schema(
       ref: "Course",
       required: true,
     },
-    completedChapters: {
-      type: [completedChapterSchema],
-      default: [],
-    },
+    completedChapters: [
+      {
+        chapterId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Chapter",
+          required: true,
+        },
+        completedAt: { type: Date, default: Date.now },
+        lastUpdated: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
-
-// Prevent multiple progress docs per user-course
-courseProgressSchema.index({ userId: 1, courseId: 1 }, { unique: true });
 
 const CourseProgress = mongoose.model("CourseProgress", courseProgressSchema);
 export default CourseProgress;
