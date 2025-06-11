@@ -9,7 +9,9 @@ export const verifyAccessToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN);
-    req.user = decoded;
+
+    req.user = { _id: decoded.userId, role: decoded.role };
+
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid or expired token" });

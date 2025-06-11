@@ -7,7 +7,8 @@ import cookieParser from "cookie-parser";
 import courseRouter from "./routes/course.route.js";
 import { seedCourses } from "./utils/seed.js";
 import noteRouter from "./routes/notes.route.js";
-import progressRouter from "./routes/exerciseProgress.route.js";
+import courseProgressRouter from "./routes/courseProgress.route.js";
+import chapterRouter from "./routes/chapter.route.js";
 
 dotenv.config();
 
@@ -33,4 +34,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRouter);
 app.use("/api/courses", [courseRouter, noteRouter]);
+app.use("/api/courses/chapters", chapterRouter);
+app.use("/api/courseProgress", courseProgressRouter);
 app.get("/ping", (req, res) => res.send("Server is alive"));
