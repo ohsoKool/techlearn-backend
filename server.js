@@ -9,6 +9,8 @@ import { seedCourses } from "./utils/seed.js";
 import noteRouter from "./routes/notes.route.js";
 import courseProgressRouter from "./routes/courseProgress.route.js";
 import chapterRouter from "./routes/chapter.route.js";
+import exerciseRouter from "./routes/exercise.route.js";
+import exerciseProgressRouter from "./routes/exerciseProgress.route.js";
 
 dotenv.config();
 
@@ -36,4 +38,6 @@ app.use("/api/auth", authRouter);
 app.use("/api/courses", [courseRouter, noteRouter]);
 app.use("/api/courses/chapters", chapterRouter);
 app.use("/api/courseProgress", courseProgressRouter);
+app.use("/api/exercises", exerciseRouter);
+app.use("/api/exerciseProgress", exerciseProgressRouter);
 app.get("/ping", (req, res) => res.send("Server is alive"));

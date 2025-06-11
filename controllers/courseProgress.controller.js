@@ -6,7 +6,6 @@ export const markChapterComplete = async (req, res) => {
   const userId = req.user._id;
 
   try {
-    // Check if chapter exists for the course
     const chapter = await Chapter.findOne({ _id: chapterId, courseId });
     if (!chapter) {
       return res
@@ -14,12 +13,10 @@ export const markChapterComplete = async (req, res) => {
         .json({ message: "Chapter not found in this course." });
     }
 
-    // Find existing progress
     let progress = await CourseProgress.findOne({ userId, courseId });
 
     if (!progress) {
-      // Create new progress document
-      progress = new CourseProgress({
+      progress = await CourseProgress.create({
         userId,
         courseId,
         completedChapters: [
@@ -30,20 +27,16 @@ export const markChapterComplete = async (req, res) => {
           },
         ],
       });
-
-      await progress.save();
       return res.status(201).json({
         message: "Progress created and chapter marked as complete",
         progress,
       });
     }
 
-    // Remove existing entry for chapterId if it exists
     progress.completedChapters = progress.completedChapters.filter(
       (c) => c.chapterId.toString() !== chapterId
     );
 
-    // Push the updated completion entry
     progress.completedChapters.push({
       chapterId,
       completedAt: new Date(),
