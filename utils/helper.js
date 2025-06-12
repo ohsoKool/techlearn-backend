@@ -11,7 +11,7 @@ export const generateTokens = (userId, role) => {
 
   const refreshToken = jwt.sign(
     { userId, role },
-    process.env.JWT_REFRESH_SECRET,
+    process.env.JWT_REFRESH_TOKEN,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d",
     }
