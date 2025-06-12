@@ -35,9 +35,10 @@ app.use(express.urlencoded({ extended: true }));
 })();
 
 app.use("/api/auth", authRouter);
-app.use("/api/courses", [courseRouter, noteRouter]);
+app.use("/api/notes", noteRouter);
+app.use("/api/courses", courseRouter);
 app.use("/api/courses/chapters", chapterRouter);
-app.use("/api/courseProgress", courseProgressRouter);
+app.use("/api/course-progress", courseProgressRouter);
 app.use("/api/exercises", exerciseRouter);
 app.use("/api/exerciseProgress", exerciseProgressRouter);
 app.get("/ping", (req, res) => res.send("Server is alive"));

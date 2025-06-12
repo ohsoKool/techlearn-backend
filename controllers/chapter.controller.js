@@ -1,12 +1,20 @@
 import Chapter from "../models/chapter.model.js";
+import mongoose from "mongoose";
 
 export const createChapter = async (req, res) => {
   try {
     const { courseId, title } = req.body;
+
+    // Validate required fields
     if (!courseId || !title) {
       return res
         .status(400)
         .json({ message: "Course ID and title are required" });
+    }
+
+    // Validate courseId format
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({ message: "Invalid courseId" });
     }
 
     const newChapter = await Chapter.create({ courseId, title });
@@ -20,6 +28,11 @@ export const createChapter = async (req, res) => {
 
 export const getChaptersByCourse = async (req, res) => {
   const { courseId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(courseId)) {
+    return res.status(400).json({ message: "Invalid courseId" });
+  }
+
   try {
     const chapters = await Chapter.find({ courseId });
     res.status(200).json({ count: chapters.length, chapters });
@@ -32,10 +45,15 @@ export const getChaptersByCourse = async (req, res) => {
 
 export const updateChapter = async (req, res) => {
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid chapter ID" });
+  }
+
   try {
     const updatedChapter = await Chapter.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
+      new: true, // Return updated doc
+      runValidators: true, // Apply schema validations
     });
 
     if (!updatedChapter) {
@@ -52,6 +70,11 @@ export const updateChapter = async (req, res) => {
 
 export const deleteChapter = async (req, res) => {
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid chapter ID" });
+  }
+
   try {
     const deleted = await Chapter.findByIdAndDelete(id);
     if (!deleted) return res.status(404).json({ message: "Chapter not found" });

@@ -1,24 +1,31 @@
-import req from "express/lib/request.js";
+import mongoose from "mongoose";
 import Exercise from "../models/exercise.model.js";
 
 export const createExercise = async (req, res) => {
   try {
     const { title, description } = req.body;
+
     if (!title || !description) {
       return res
         .status(400)
-        .json({ message: "title and description are required" });
+        .json({ message: "Title and description are required" });
     }
+
     const newExercise = await Exercise.create({ title, description });
-    if (!newExercise)
-      return res.status(400).json({ message: "failed to create the exercise" });
-    res
-      .status(201)
-      .json({ message: "Exercise successfully created", newExercise });
+
+    if (!newExercise) {
+      return res.status(400).json({ message: "Failed to create the exercise" });
+    }
+
+    res.status(201).json({
+      message: "Exercise successfully created",
+      exercise: newExercise,
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json("Error occured while creating an exercise", error.name);
+    return res.status(500).json({
+      message: "Error occurred while creating an exercise",
+      error: error.message,
+    });
   }
 };
 
@@ -26,12 +33,12 @@ export const getAllExercises = async (req, res) => {
   try {
     const exercises = await Exercise.find({});
 
-    if (exercises.length === 0) {
+    if (!exercises.length) {
       return res.status(200).json({ message: "No exercises found" });
     }
 
     res.status(200).json({
-      message: "Successfully fetched all the exercises",
+      message: "Successfully fetched all exercises",
       exercises,
     });
   } catch (error) {
@@ -43,18 +50,18 @@ export const getAllExercises = async (req, res) => {
 };
 
 export const updateExercise = async (req, res) => {
+  const { exerciseId } = req.params;
+  const updateData = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(exerciseId)) {
+    return res.status(400).json({ message: "Invalid exercise ID" });
+  }
+
   try {
-    const { exerciseId } = req.params;
-    const updateData = req.body;
-
-    if (!exerciseId) {
-      return res.status(400).json({ message: "Exercise ID is required" });
-    }
-
     const updatedExercise = await Exercise.findByIdAndUpdate(
       exerciseId,
       updateData,
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!updatedExercise) {
@@ -62,43 +69,61 @@ export const updateExercise = async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Successfully updated the exercise",
-      updatedExercise,
+      message: "Exercise updated successfully",
+      exercise: updatedExercise,
     });
   } catch (error) {
     res.status(500).json({
-      message: "An error occurred while updating the exercise",
+      message: "Error occurred while updating the exercise",
       error: error.message,
     });
   }
 };
 
 export const getExerciseById = async (req, res) => {
+  const { exerciseId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(exerciseId)) {
+    return res.status(400).json({ message: "Invalid exercise ID" });
+  }
+
   try {
-    const { exerciseId } = req.params;
-    const fetchedExercise = await Exercise.findById(exerciseId);
-    if (!fetchedExercise)
-      return res.status(404).json({ message: "The exercise was not found" });
-    res
-      .status(200)
-      .json({ message: "Exercise fetched successfully", fetchedExercise });
+    const exercise = await Exercise.findById(exerciseId);
+
+    if (!exercise) {
+      return res.status(404).json({ message: "Exercise not found" });
+    }
+
+    res.status(200).json({
+      message: "Exercise fetched successfully",
+      exercise,
+    });
   } catch (error) {
     res.status(500).json({
-      message: "An error occurred while getting the exercise",
+      message: "Error occurred while fetching the exercise",
       error: error.message,
     });
   }
 };
+
 export const deleteExercise = async (req, res) => {
+  const { exerciseId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(exerciseId)) {
+    return res.status(400).json({ message: "Invalid exercise ID" });
+  }
+
   try {
-    const { exerciseId } = req.params;
     const deletedExercise = await Exercise.findByIdAndDelete(exerciseId);
-    if (!deletedExercise)
-      return res.status(404).json({ message: "The exercise was not found" });
+
+    if (!deletedExercise) {
+      return res.status(404).json({ message: "Exercise not found" });
+    }
+
     res.status(200).json({ message: "Exercise deleted successfully" });
   } catch (error) {
     res.status(500).json({
-      message: "An error occurred while deleting the exercise",
+      message: "Error occurred while deleting the exercise",
       error: error.message,
     });
   }

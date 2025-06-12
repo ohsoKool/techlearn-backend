@@ -1,6 +1,7 @@
 import Course from "../models/course.model.js";
 import Chapter from "../models/chapter.model.js";
 import Note from "../models/note.model.js";
+import mongoose from "mongoose";
 
 export const getAllCourses = async (req, res) => {
   try {
@@ -30,6 +31,10 @@ export const createCourse = async (req, res) => {
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
 
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid course ID" });
+  }
+
   if (!req.body) {
     return res.status(400).json({ message: "Nothing to update" });
   }
@@ -54,6 +59,11 @@ export const updateCourse = async (req, res) => {
 
 export const deleteCourse = async (req, res) => {
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid course ID" });
+  }
+
   try {
     const deletedCourse = await Course.findByIdAndDelete(id);
 
@@ -61,10 +71,8 @@ export const deleteCourse = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    // Delete related chapters
+    // Delete related chapters and notes
     await Chapter.deleteMany({ courseId: id });
-
-    // Delete related notes
     await Note.deleteMany({ courseId: id });
 
     res.json({ message: "Course, chapters, and notes deleted" });

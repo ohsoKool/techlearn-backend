@@ -1,3 +1,4 @@
+import express from "express";
 import {
   createExercise,
   getAllExercises,
@@ -5,32 +6,27 @@ import {
   getExerciseById,
   deleteExercise,
 } from "../controllers/exercise.controller.js";
-import express from "express";
-import { isAdmin, verifyAccessToken } from "../middleware/auth.middleware.js";
+import { verifyAccessToken, isAdmin } from "../middleware/auth.middleware.js";
 
 const exerciseRouter = express.Router();
-exerciseRouter.post(
-  "/create-exercise",
-  verifyAccessToken,
-  isAdmin,
-  createExercise
-);
-exerciseRouter.get("/getAllExercises", verifyAccessToken, getAllExercises);
-exerciseRouter.put(
-  "/update-exercise/:exerciseId",
-  verifyAccessToken,
-  isAdmin,
-  updateExercise
-);
-exerciseRouter.get(
-  "/fetch-exercise/:exerciseId",
-  verifyAccessToken,
-  getExerciseById
-);
-exerciseRouter.delete(
-  "/delete-exercise/:exerciseId",
-  verifyAccessToken,
-  deleteExercise
-);
+
+exerciseRouter.use(verifyAccessToken);
+
+// GET /api/exercises - Get all exercises (User or Admin)
+exerciseRouter.get("/", getAllExercises);
+
+// GET /api/exercises/:exerciseId - Get a specific exercise by ID (User or Admin)
+exerciseRouter.get("/:exerciseId", getExerciseById);
+
+exerciseRouter.use(isAdmin);
+
+// POST /api/exercises - Create a new exercise (Admin only)
+exerciseRouter.post("/", createExercise);
+
+// PUT /api/exercises/:exerciseId - Update an exercise (Admin only)
+exerciseRouter.put("/:exerciseId", updateExercise);
+
+// DELETE /api/exercises/:exerciseId - Delete an exercise (Admin only)
+exerciseRouter.delete("/:exerciseId", deleteExercise);
 
 export default exerciseRouter;

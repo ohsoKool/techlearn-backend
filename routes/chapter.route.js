@@ -9,28 +9,17 @@ import { isAdmin, verifyAccessToken } from "../middleware/auth.middleware.js";
 
 const chapterRouter = express.Router();
 
-chapterRouter.post(
-  "/create-chapter",
-  isAdmin,
-  verifyAccessToken,
-  createChapter
-);
-chapterRouter.get(
-  "/get-chapters/:courseId",
-  verifyAccessToken,
-  getChaptersByCourse
-);
-chapterRouter.put(
-  "/update-chapter/:id",
-  isAdmin,
-  verifyAccessToken,
-  updateChapter
-);
-chapterRouter.delete(
-  "/delete-chapter/:id",
-  isAdmin,
-  verifyAccessToken,
-  deleteChapter
-);
+// All routes need authentication
+chapterRouter.use(verifyAccessToken);
+
+// Public (authenticated) route
+chapterRouter.get("/:courseId", getChaptersByCourse);
+
+// Admin-only routes
+chapterRouter.use(isAdmin); // applies to routes below
+
+chapterRouter.post("/", createChapter);
+chapterRouter.put("/:id", updateChapter);
+chapterRouter.delete("/:id", deleteChapter);
 
 export default chapterRouter;
