@@ -75,7 +75,10 @@ export const deleteCourse = async (req, res) => {
     await Chapter.deleteMany({ courseId: id });
     await Note.deleteMany({ courseId: id });
 
-    res.json({ message: "Course, chapters, and notes deleted" });
+    res.json({
+      message:
+        "Course, chapters, and notes of the course are deleted successfully",
+    });
   } catch (error) {
     res.status(500).json({
       message: "Failed to delete course",
