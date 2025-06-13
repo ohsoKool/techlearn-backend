@@ -5,7 +5,7 @@ import cors from "cors";
 import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
 import courseRouter from "./routes/course.route.js";
-import { seedCourses } from "./utils/seed.js";
+import seedCourses from "./utils/seed.js";
 import noteRouter from "./routes/notes.route.js";
 import courseProgressRouter from "./routes/courseProgress.route.js";
 import chapterRouter from "./routes/chapter.route.js";
