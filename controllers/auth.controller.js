@@ -3,9 +3,25 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { generateTokens } from "../utils/helper.js";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
+    }
 
     const existing = await User.findOne({ email });
     if (existing)
@@ -19,7 +35,6 @@ export const register = async (req, res) => {
     });
 
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
-    // console.log("Tokens generated", accessToken, refreshToken);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -44,6 +59,17 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Basic validation
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -76,20 +102,18 @@ export const login = async (req, res) => {
 
 export const refreshAccessToken = (req, res) => {
   const token = req.cookies.refreshToken;
-  if (!token) return res.status(401).json({ message: "No refresh token" });
+  if (!token)
+    return res.status(401).json({ message: "No refresh token provided" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_TOKEN);
-
     const accessToken = jwt.sign(
       { userId: decoded.userId, role: decoded.role },
       process.env.JWT_ACCESS_TOKEN,
-      {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m",
-      }
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m" }
     );
 
-    res.status(200).json({ message: "Access token refreshed" });
+    res.status(200).json({ accessToken, message: "Access token refreshed" });
   } catch (err) {
     res.status(401).json({ message: "Invalid refresh token" });
   }
