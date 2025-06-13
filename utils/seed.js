@@ -80,7 +80,7 @@ const courses = [
   },
 ];
 
-export const seedCourses = async () => {
+const seedCourses = async () => {
   try {
     const existingCourses = await Course.find({});
     if (existingCourses.length > 0) {
@@ -105,3 +105,5 @@ export const seedCourses = async () => {
     process.exit(1);
   }
 };
+
+export default seedCourses;
